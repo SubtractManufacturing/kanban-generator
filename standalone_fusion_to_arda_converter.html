@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fusion → Arda.cards Converter</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+        text-align: center;
+      }
+
+      .subtitle {
+        color: #666;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .info-box {
+        background: #f7f7f7;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-bottom: 30px;
+        border-radius: 5px;
+      }
+
+      .info-box h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .info-box ul {
+        list-style: none;
+        font-size: 13px;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .info-box li {
+        margin-bottom: 5px;
+        padding-left: 20px;
+        position: relative;
+      }
+
+      .info-box li:before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #667eea;
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .file-input-label {
+        display: block;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+        text-align: center;
+        font-weight: 500;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .file-input-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      input[type="file"] {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .file-name {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #555;
+        word-break: break-all;
+      }
+
+      .convert-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-top: 20px;
+      }
+
+      .convert-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .convert-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+      }
+
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .download-link {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 20px;
+        background: #28a745;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+      }
+
+      .download-link:hover {
+        background: #218838;
+      }
+
+      .progress {
+        margin-top: 20px;
+        display: none;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        width: 0;
+        transition: width 0.3s ease;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Fusion → Arda.cards Converter</h1>
+      <p class="subtitle">
+        Convert Fusion 360 Tool Library CSV to Arda.cards Import Format
+      </p>
+
+      <div class="info-box">
+        <h3>What This Tool Does</h3>
+        <ul>
+          <li>
+            Converts Fusion 360 Tool Library CSV to Arda.cards bulk import CSV
+          </li>
+          <li>De-duplicates tools by Tool Index (keeps first occurrence)</li>
+          <li>Maps tool types to appropriate product images</li>
+          <li>Formats item names as: "[Number] - [Description]"</li>
+          <li>Preserves vendor, product ID, and product links</li>
+        </ul>
+      </div>
+
+      <div class="file-input-wrapper">
+        <label for="fileInput" class="file-input-label">
+          📁 Select Fusion Tool Library CSV
+        </label>
+        <input type="file" id="fileInput" accept=".csv" />
+        <div id="fileName" class="file-name" style="display: none"></div>
+      </div>
+
+      <button id="convertBtn" class="convert-btn" disabled>
+        🔄 Convert to Arda Format
+      </button>
+
+      <div class="progress" id="progress">
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+
+    <script>
+      // Image URL mapping
+      const DEFAULT_IMAGE_URL =
+        "https://www.fictiv.com/wp-content/uploads/2021/05/image2-1-1536x864.jpg";
+
+      const IMAGE_URLS = {
+        "flat end mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/6085135AA-24.jpg",
+        "ball end mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/2976776-24.jpg",
+        "chamfer mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/4805697-24.jpg",
+        drill:
+          "https://cdn.mscdirect.com/global/images/ProductImages/7851792-21.jpg",
+        "tap right hand":
+          "https://cdn.mscdirect.com/global/images/ProductImages/4122844-24.jpg",
+        "spot drill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/4540303-24.jpg",
+        "bull nose end mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/8695501-21.jpg",
+        "thread mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/7604790-24.jpg",
+        "slot mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/7306018-24.jpg",
+        "dovetail mill":
+          "https://cdn.mscdirect.com/global/images/ProductImages/0182832-24.jpg",
+      };
+
+      // Arda columns
+      const ARDA_COLS = [
+        "Item Name",
+        "Notes",
+        "SKU",
+        "Supplier",
+        "Location",
+        "Minimum",
+        "Order Quantity",
+        "Product URL",
+        "Image URL",
+        "Color Coding",
+      ];
+
+      // Known Fusion column labels
+      const COL = {
+        tool_index: "Tool Index (tool_index)",
+        tool_description: "Description (tool_description)",
+        tool_number: "Number (tool_number)",
+        product_id: "Product ID (tool_productId)",
+        product_link: "Product Link (tool_productLink)",
+        vendor: "Vendor (tool_vendor)",
+        tool_comment: "Comment (tool_comment)",
+        tool_type: "Type (tool_type)",
+      };
+
+      let fileContent = null;
+      let fileName = null;
+
+      // File input handler
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) {
+            fileName = file.name;
+            document.getElementById("fileName").style.display = "block";
+            document.getElementById(
+              "fileName"
+            ).textContent = `Selected: ${fileName}`;
+            document.getElementById("convertBtn").disabled = false;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              fileContent = e.target.result;
+            };
+            reader.readAsText(file);
+          }
+        });
+
+      // Convert button handler
+      document
+        .getElementById("convertBtn")
+        .addEventListener("click", function () {
+          if (!fileContent) {
+            showStatus("Please select a file first", "error");
+            return;
+          }
+
+          console.log("File content length:", fileContent.length);
+          console.log("First 200 chars:", fileContent.substring(0, 200));
+
+          document.getElementById("progress").style.display = "block";
+          document.getElementById("progressFill").style.width = "30%";
+
+          setTimeout(() => {
+            try {
+              const result = convertFusionToArda(fileContent);
+              if (!result) {
+                throw new Error("Conversion returned empty result");
+              }
+              document.getElementById("progressFill").style.width = "100%";
+
+              setTimeout(() => {
+                downloadCSV(result, "arda_import.csv");
+                document.getElementById("progress").style.display = "none";
+                showStatus(
+                  "✅ Conversion successful! File downloaded.",
+                  "success"
+                );
+              }, 300);
+            } catch (error) {
+              document.getElementById("progress").style.display = "none";
+              showStatus(`❌ Error: ${error.message}`, "error");
+              console.error("Full error:", error);
+              console.error("Stack trace:", error.stack);
+            }
+          }, 100);
+        });
+
+      // Parse CSV string to array of objects
+      function parseCSV(csvText) {
+        try {
+          // Normalize line endings and split into lines
+          const normalizedText = csvText
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n");
+          const lines = normalizedText
+            .split("\n")
+            .filter((line) => line.length > 0);
+
+          console.log("Total lines found:", lines.length);
+          if (lines.length === 0) return [];
+
+          // Parse headers
+          const headers = parseCSVLine(lines[0]);
+          console.log("Headers found:", headers.length, "columns");
+          console.log("Sample headers:", headers.slice(0, 5));
+
+          // Parse data rows
+          const data = [];
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim()) {
+              const values = parseCSVLine(lines[i]);
+              // Be more lenient - allow rows with slightly fewer columns (trailing empty fields)
+              if (Math.abs(values.length - headers.length) <= 1) {
+                const row = {};
+                headers.forEach((header, index) => {
+                  row[header] = values[index] || "";
+                });
+                data.push(row);
+              } else {
+                console.warn(
+                  `Row ${i} has ${values.length} columns, expected ${headers.length} - skipping`
+                );
+              }
+            }
+          }
+
+          console.log("Successfully parsed", data.length, "data rows");
+          return data;
+        } catch (error) {
+          console.error("CSV parsing error:", error);
+          return [];
+        }
+      }
+
+      // Parse a single CSV line handling quotes properly
+      function parseCSVLine(line) {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+
+          if (inQuotes) {
+            // Inside quotes
+            if (char === '"') {
+              // Check if it's an escaped quote
+              if (i + 1 < line.length && line[i + 1] === '"') {
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                // End of quoted field
+                inQuotes = false;
+              }
+            } else {
+              current += char;
+            }
+          } else {
+            // Outside quotes
+            if (char === '"') {
+              // Start of quoted field
+              inQuotes = true;
+            } else if (char === ",") {
+              // End of field
+              result.push(current);
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+        }
+
+        // Add the last field
+        result.push(current);
+
+        return result;
+      }
+
+      // Convert array of objects to CSV string
+      function arrayToCSV(data, columns) {
+        if (!data || data.length === 0) return "";
+
+        // Headers
+        const headers = columns.map((col) => `"${col}"`).join(",");
+
+        // Rows
+        const rows = data.map((row) => {
+          return columns
+            .map((col) => {
+              const value = row[col] || "";
+              // Escape quotes and wrap in quotes
+              return `"${String(value).replace(/"/g, '""')}"`;
+            })
+            .join(",");
+        });
+
+        return [headers, ...rows].join("\n");
+      }
+
+      // Get image URL for tool type
+      function getImageURL(toolType) {
+        if (!toolType || typeof toolType !== "string") {
+          return DEFAULT_IMAGE_URL;
+        }
+        const key = toolType.trim().toLowerCase();
+        return IMAGE_URLS[key] || DEFAULT_IMAGE_URL;
+      }
+
+      // Main conversion function
+      function convertFusionToArda(csvContent) {
+        document.getElementById("progressFill").style.width = "50%";
+
+        // Parse CSV
+        const data = parseCSV(csvContent);
+        console.log("Parsed data rows:", data.length);
+
+        if (!data || data.length === 0) {
+          throw new Error(
+            "No data found in CSV file. The file may be empty or improperly formatted."
+          );
+        }
+
+        // De-duplicate by Tool Index
+        const toolIndexCol = COL.tool_index;
+        const seen = new Set();
+        const dedupedData = [];
+
+        for (const row of data) {
+          const toolIndex = String(row[toolIndexCol] || "").trim();
+          const key =
+            toolIndex && toolIndex.toLowerCase() !== "nan" && toolIndex !== ""
+              ? toolIndex
+              : JSON.stringify(row);
+
+          if (!seen.has(key)) {
+            seen.add(key);
+            dedupedData.push(row);
+          }
+        }
+
+        console.log("After deduplication:", dedupedData.length, "unique tools");
+        document.getElementById("progressFill").style.width = "70%";
+
+        // Build output rows
+        const outputRows = dedupedData.map((row) => {
+          // Extract values
+          let desc = String(row[COL.tool_description] || "").trim();
+          // Replace commas in description with semicolons to avoid CSV quoting
+          desc = desc.replace(/,/g, ";");
+
+          let number = String(row[COL.tool_number] || "").trim();
+
+          // Normalize "nan" strings
+          if (!number || number.toLowerCase() === "nan") {
+            number = "";
+          }
+
+          // Item Name
+          let itemName = "";
+          if (number && desc) {
+            itemName = `${number} - ${desc}`;
+          } else {
+            itemName = number || desc;
+          }
+
+          // Other fields
+          const notes = row[COL.tool_comment] || "";
+          const sku = row[COL.product_id] || "";
+          const supplier = row[COL.vendor] || "";
+          const productUrl = row[COL.product_link] || "";
+          const toolType = row[COL.tool_type] || "";
+          const imageUrl = getImageURL(toolType);
+
+          // Build Arda row
+          return {
+            "Item Name": itemName,
+            Notes: notes,
+            SKU: sku,
+            Supplier: supplier,
+            Location: "",
+            Minimum: "",
+            "Order Quantity": "",
+            "Product URL": productUrl,
+            "Image URL": imageUrl,
+            "Color Coding": "",
+          };
+        });
+
+        document.getElementById("progressFill").style.width = "90%";
+
+        // Generate clean CSV (minimal quoting)
+        const cols = ARDA_COLS;
+        const csvRows = [];
+        csvRows.push(cols.join(",")); // Header row without quotes
+
+        outputRows.forEach((row) => {
+          const rowValues = cols.map((col) => {
+            const val = row[col] || "";
+            // Only add quotes if value contains comma, quotes, or newlines
+            if (
+              val &&
+              (val.indexOf(",") >= 0 ||
+                val.indexOf('"') >= 0 ||
+                val.indexOf("\n") >= 0)
+            ) {
+              return '"' + String(val).replace(/"/g, '""') + '"';
+            }
+            return val;
+          });
+          csvRows.push(rowValues.join(","));
+        });
+
+        return csvRows.join("\n");
+      }
+
+      // Download CSV file
+      function downloadCSV(content, filename) {
+        const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = "hidden";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Show status message
+      function showStatus(message, type) {
+        const statusEl = document.getElementById("status");
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`;
+        statusEl.style.display = "block";
+
+        if (type === "success") {
+          setTimeout(() => {
+            statusEl.style.display = "none";
+          }, 5000);
+        }
+      }
+    </script>
+  </body>
+</html>
