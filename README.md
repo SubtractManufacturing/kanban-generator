@@ -14,11 +14,13 @@ A tool that converts Fusion 360 Tool Library CSV exports to Arda.cards bulk impo
 ## Available Versions
 
 ### 1. Standalone HTML (`standalone_fusion_to_arda_converter.html`)
+
 - Single file, works offline
 - Open directly in any web browser
 - No installation required
 
 ### 2. WordPress Plugin (`fusion-arda-converter-ultimate/`)
+
 - Full WordPress integration
 - Admin dashboard for customization
 - Edit conversion logic without coding
@@ -28,6 +30,7 @@ A tool that converts Fusion 360 Tool Library CSV exports to Arda.cards bulk impo
 ## Usage
 
 ### Standalone Version
+
 1. Open `standalone_fusion_to_arda_converter.html` in a web browser
 2. Click "Select Fusion Tool Library CSV"
 3. Choose your exported Fusion 360 CSV file
@@ -35,6 +38,7 @@ A tool that converts Fusion 360 Tool Library CSV exports to Arda.cards bulk impo
 5. File downloads automatically
 
 ### WordPress Plugin
+
 1. Copy `fusion-arda-converter-ultimate/` to `/wp-content/plugins/`
 2. Activate in WordPress Admin
 3. Add `[fusion_arda_converter]` to any page
@@ -45,6 +49,7 @@ A tool that converts Fusion 360 Tool Library CSV exports to Arda.cards bulk impo
 **Input**: Fusion 360 Tool Library export (173+ columns)
 
 **Output**: Arda.cards import format (10 columns)
+
 ```csv
 Item Name,Notes,SKU,Supplier,Location,Minimum,Order Quantity,Product URL,Image URL,Color Coding
 ```
@@ -53,16 +58,18 @@ Item Name,Notes,SKU,Supplier,Location,Minimum,Order Quantity,Product URL,Image U
 
 ```
 ├── standalone_fusion_to_arda_converter.html  # Browser-based converter
-├── fusion-arda-converter-ultimate/           # WordPress plugin
+├── fusion-arda-converter-ultimate/           # Plugin Source
 │   ├── fusion-arda-converter-ultimate.php    # Main plugin file
 │   └── default-logic.js                      # Conversion logic
+├── fusionn-arda-converter-ultimate.zip       # Wordpress plugin
 ├── Subtract Swing Library Non Ferrous Only.csv  # Sample Fusion export
-└── README.md                                  # This file
+└── README.md                                 # This file
 ```
 
 ## Customization
 
 The conversion logic can be customized to:
+
 - Map different tool types to images
 - Change field mappings
 - Add custom processing rules
@@ -73,4 +80,4 @@ For standalone: Edit the JavaScript in the HTML file
 
 ## License
 
-Private project for Subtract Manufacturing
+This project is licensed under the MIT License. For derivative work, please consult the MIT license specifications.
